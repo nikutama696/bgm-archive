@@ -84,6 +84,15 @@ def main():
         "generated": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "count": len(tracks),
         "genres": genres,
+        "terms": {
+            "url": "terms.html",
+            "license": "Stability AI Community License",
+            "commercial_use": True,
+            "modification": True,
+            "credit": "optional",
+            "redistribution_or_resale": False,
+            "content_id_registration": False,
+        },
         "tracks": tracks,
     }
     (DIST / "index.json").write_text(json.dumps(index, ensure_ascii=False, indent=1), encoding="utf-8")
@@ -96,6 +105,9 @@ def main():
     page = (ROOT / "index.html").read_text(encoding="utf-8").replace("<!--STATIC_LIST-->", items)
     (DIST / "index.html").write_text(page, encoding="utf-8")
 
+    # terms.html (利用規約)
+    shutil.copy(ROOT / "terms.html", DIST / "terms.html")
+
     # llms.txt (AIエージェント向けの案内)
     base = SITE_URL + "/" if SITE_URL else ""
     lines = [
@@ -106,6 +118,12 @@ def main():
         f"- 目録: {base}index.json",
         "- ファイル名の規則: ジャンル_タイトル.拡張子 (例: edm_neon-city.mp3 → ジャンル edm)",
         f"- 曲数: {len(tracks)} / ジャンル: {', '.join(f'{g}({n})' for g, n in genres.items()) or 'なし'}",
+        "",
+        "## 利用規約 (必ず確認してください)",
+        f"- 規約全文: {base}terms.html",
+        "- 音源はStability AI Community Licenseに基づき生成・編集されたAI音源",
+        "- OK: 商用利用 / 加工・編集 / クレジット表記は任意",
+        "- NG: 音源ファイル自体の再配布・転売 / YouTube Content ID等への登録 / 違法・公序良俗に反する用途 / 他者の権利を侵害する表現",
         "",
         "## Tracks",
     ]

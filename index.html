@@ -56,6 +56,10 @@ ul.list{list-style:none;margin:0;padding:0;border:1px solid var(--line);border-r
 .dl{font-size:13px;text-decoration:none;border:1px solid var(--line);padding:3px 13px;border-radius:8px;color:var(--ink)}
 .dl:hover{border-color:var(--acc);color:var(--acc)}
 .empty{padding:40px 20px;color:var(--mute)}
+.notice{margin:16px 0 0;max-width:640px;padding:10px 16px;border:1px solid var(--line);border-radius:12px;background:rgba(10,52,58,.45);font-size:13px;line-height:1.7;color:var(--mute)}
+.notice b{color:var(--ink);font-weight:700}.notice a{color:var(--acc)}
+footer{margin:36px 0 0;padding:20px 0;border-top:1px solid var(--line);font-size:13px;color:var(--mute);display:flex;gap:8px 20px;flex-wrap:wrap}
+footer a{color:var(--acc)}
 .bar{position:fixed;left:12px;right:12px;bottom:12px;z-index:10;display:none}
 .bar.show{display:block}
 .in{max-width:960px;margin:0 auto;display:grid;grid-template-columns:minmax(0,200px) auto 1fr auto;gap:18px;align-items:center;padding:12px 18px;border:1px solid var(--line);border-radius:20px;background:rgba(6,34,39,.88);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 18px 50px rgba(0,0,0,.5)}
@@ -81,6 +85,7 @@ noscript ul{padding-left:20px}
   <header>
     <h1>BGM Archive</h1>
     <p class="sub">BGMを検索・試聴・ダウンロードできるアーカイブ</p>
+    <p class="notice"><b>商用利用OK・加工自由・クレジット任意。</b>音源ファイル自体の再配布・転売と、YouTube Content ID等への登録は禁止です。ダウンロード・ご利用の際は<a href="terms.html">利用規約</a>への同意が必要です。</p>
     <div id="eq" class="eq" aria-hidden="true"></div>
   </header>
   <div class="tools">
@@ -96,6 +101,12 @@ noscript ul{padding-left:20px}
     <p>JavaScriptが無効です。曲の一覧:</p>
     <ul><!--STATIC_LIST--></ul>
   </noscript>
+  <footer>
+    <a href="terms.html">利用規約・ライセンス</a>
+    <span>運営: nikutama</span>
+    <a href="index.json">index.json</a>
+    <a href="llms.txt">llms.txt</a>
+  </footer>
 </div>
 
 <div id="bar" class="bar" aria-label="プレーヤー">
@@ -175,7 +186,7 @@ function render() {
     const nu = document.createElement('span'); nu.className = 'num';
     nu.textContent = [t.duration != null ? mmss(t.duration) : '', mb(t.size)].filter(Boolean).join(' / ');
     const dl = document.createElement('a'); dl.className = 'dl'; dl.href = t.url; dl.download = t.file.split('/').pop(); dl.textContent = '保存';
-    dl.setAttribute('aria-label', t.title + ' をダウンロード');
+    dl.setAttribute('aria-label', t.title + ' をダウンロード'); dl.title = '利用規約に同意のうえダウンロードしてください';
     li.append(p, ti, tag, nu, dl); ul.appendChild(li);
   });
   mark();
