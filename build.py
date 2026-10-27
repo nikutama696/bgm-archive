@@ -92,6 +92,7 @@ def main():
             "credit": "optional",
             "redistribution_or_resale": False,
             "content_id_registration": False,
+            "ai_training": False,
         },
         "tracks": tracks,
     }
@@ -123,7 +124,9 @@ def main():
         f"- 規約全文: {base}terms.html",
         "- 音源はStability AI Community Licenseに基づき生成・編集されたAI音源",
         "- OK: 商用利用 / 加工・編集 / クレジット表記は任意",
-        "- NG: 音源ファイル自体の再配布・転売 / YouTube Content ID等への登録 / 違法・公序良俗に反する用途 / 他者の権利を侵害する表現",
+        "- NG: 音源ファイル自体の再配布・転売 / YouTube Content ID等への登録 / 生成AI・機械学習モデルの学習への利用 / 違法・公序良俗に反する用途 / 他者の権利を侵害する表現",
+        "- AIエージェントによる検索・試聴・ダウンロードは可。ただし学習データとしての利用は不可",
+        "- Powered by Stability AI",
         "",
         "## Tracks",
     ]

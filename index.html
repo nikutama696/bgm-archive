@@ -19,13 +19,9 @@ a{color:inherit}
 :focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 button{font-family:inherit}
 .wrap{max-width:960px;margin:0 auto;padding:0 20px}
-header{padding:64px 0 28px;position:relative}
-h1{margin:0;font:800 clamp(44px,10vw,92px)/.98 Sora,sans-serif;letter-spacing:-.03em}
+header{padding:44px 0 24px}
+h1{margin:0;font:800 clamp(34px,7.2vw,66px)/1 Sora,sans-serif;letter-spacing:-.03em}
 .sub{margin:14px 0 0;color:var(--mute)}
-.eq{display:flex;align-items:flex-end;gap:5px;height:64px;margin-top:30px}
-.eq span{flex:1;max-width:14px;height:var(--h);border-radius:3px 3px 0 0;background:linear-gradient(to top,var(--key),var(--acc));transform:scaleY(.18);transform-origin:bottom;opacity:.85}
-.playing .eq span{animation:eq var(--s) ease-in-out infinite alternate;animation-delay:var(--d)}
-@keyframes eq{to{transform:scaleY(1)}}
 .tools{position:sticky;top:0;z-index:5;padding:12px 0;background:rgba(4,20,23,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
 .r1{display:flex;gap:10px}
 .search{flex:1;min-width:0;font:inherit;padding:11px 16px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.05);color:var(--ink)}
@@ -56,7 +52,7 @@ ul.list{list-style:none;margin:0;padding:0;border:1px solid var(--line);border-r
 .dl{font-size:13px;text-decoration:none;border:1px solid var(--line);padding:3px 13px;border-radius:8px;color:var(--ink)}
 .dl:hover{border-color:var(--acc);color:var(--acc)}
 .empty{padding:40px 20px;color:var(--mute)}
-.notice{margin:16px 0 0;max-width:640px;padding:10px 16px;border:1px solid var(--line);border-radius:12px;background:rgba(10,52,58,.45);font-size:13px;line-height:1.7;color:var(--mute)}
+.notice{margin:18px 0 0;padding:10px 16px;border:1px solid var(--line);border-radius:12px;background:rgba(10,52,58,.45);font-size:13px;line-height:1.7;color:var(--mute)}
 .notice b{color:var(--ink);font-weight:700}.notice a{color:var(--acc)}
 footer{margin:36px 0 0;padding:20px 0;border-top:1px solid var(--line);font-size:13px;color:var(--mute);display:flex;gap:8px 20px;flex-wrap:wrap}
 footer a{color:var(--acc)}
@@ -77,16 +73,13 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
 noscript ul{padding-left:20px}
 @media(max-width:700px){.row{grid-template-columns:42px 1fr auto}.row .num,.row .tag{display:none}
 .in{grid-template-columns:1fr auto;gap:10px 14px}.seek{grid-column:1/-1;order:3}#vol{display:none}.in>:last-child{display:none}}
-@media(prefers-reduced-motion:reduce){.playing .eq span{animation:none;transform:scaleY(.6)}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
     <h1>BGM Archive</h1>
-    <p class="sub">BGMを検索・試聴・ダウンロードできるアーカイブ</p>
-    <p class="notice"><b>商用利用OK・加工自由・クレジット任意。</b>音源ファイル自体の再配布・転売と、YouTube Content ID等への登録は禁止です。ダウンロード・ご利用の際は<a href="terms.html">利用規約</a>への同意が必要です。</p>
-    <div id="eq" class="eq" aria-hidden="true"></div>
+    <p class="notice"><b>商用利用OK・加工自由・クレジット任意。</b>音源ファイル自体の再配布・転売、YouTube Content ID等への登録、AI学習への利用は禁止です。ダウンロード・ご利用の際は<a href="terms.html">利用規約</a>への同意が必要です。</p>
   </header>
   <div class="tools">
     <div class="r1">
@@ -104,6 +97,7 @@ noscript ul{padding-left:20px}
   <footer>
     <a href="terms.html">利用規約・ライセンス</a>
     <span>運営: nikutama</span>
+    <span>Powered by Stability AI</span>
     <a href="index.json">index.json</a>
     <a href="llms.txt">llms.txt</a>
   </footer>
@@ -131,12 +125,6 @@ const P = {play:'M8 5v14l11-7z',pause:'M6 5h4v14H6zM14 5h4v14h-4z',prev:'M6 5h2v
 shuffle:'M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z'};
 const ico = n => `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="${P[n]}"/></svg>`;
 document.querySelectorAll('[data-ico]').forEach(b => b.innerHTML = ico(b.dataset.ico));
-
-for (let i = 0; i < 44; i++) {
-  const s = document.createElement('span');
-  s.style.cssText = `--h:${30 + Math.random() * 70}%;--s:${(0.35 + Math.random() * 0.6).toFixed(2)}s;--d:-${(Math.random() * 1).toFixed(2)}s`;
-  $('#eq').appendChild(s);
-}
 
 let data, genre = decodeURIComponent(location.hash.slice(1)) || 'all', q = '', view = [], cur = null, shuffle = false, hist = [], dragging = false;
 const mb = n => (n / 1048576).toFixed(1) + ' MB';
