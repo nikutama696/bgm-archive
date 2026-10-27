@@ -1,0 +1,127 @@
+#!/usr/bin/env python3
+"""data/ を走査して dist/ を生成する (Cloudflare Pages 用・静的出力のみ)。
+
+ファイル名の規則:  ジャンル_タイトル.mp3   例) edm_neon-city.mp3 → ジャンル "edm"
+"_" が無いファイルはジャンル "other" になります。
+
+使い方:
+  python3 build.py                    # dist/ を生成
+  SITE_URL=https://example.pages.dev python3 build.py   # llms.txt を絶対URLにする
+"""
+import html
+import json
+import os
+import shutil
+import urllib.parse
+from datetime import datetime, timezone
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent
+DATA = ROOT / "data"
+DIST = ROOT / "dist"
+EXTS = {".mp3", ".wav", ".ogg", ".m4a", ".flac", ".aac"}
+PAGES_LIMIT = 25 * 1024 * 1024  # Cloudflare Pages: 1ファイル25MBまで
+SITE_URL = os.environ.get("SITE_URL", "").rstrip("/")
+SITE_TITLE = "BGM Archive"
+
+try:  # 入っていれば再生時間も取得 (pip install mutagen)
+    from mutagen import File as MutagenFile
+except ImportError:
+    MutagenFile = None
+
+
+def get_duration(path):
+    if MutagenFile is None:
+        return None
+    try:
+        f = MutagenFile(path)
+        return round(f.info.length) if f is not None and f.info else None
+    except Exception:
+        return None
+
+
+def scan():
+    tracks = []
+    if not DATA.is_dir():
+        return tracks
+    for p in sorted(DATA.rglob("*")):
+        if not p.is_file() or p.suffix.lower() not in EXTS:
+            continue
+        rel = p.relative_to(DATA).as_posix()
+        genre, sep, rest = p.stem.partition("_")
+        if not sep or not genre or not rest:
+            genre, rest = "other", p.stem
+        size = p.stat().st_size
+        if size > PAGES_LIMIT:
+            print(f"[警告] 25MB超: {rel} ({size / 1048576:.1f}MB) → Cloudflare Pagesにはアップできません")
+        tracks.append({
+            "file": rel,
+            "title": rest.replace("_", " "),
+            "genre": genre.lower(),
+            "size": size,
+            "duration": get_duration(p),
+            "url": "data/" + urllib.parse.quote(rel),
+        })
+    return tracks
+
+
+def main():
+    tracks = scan()
+    genres = {}
+    for t in tracks:
+        genres[t["genre"]] = genres.get(t["genre"], 0) + 1
+    genres = dict(sorted(genres.items()))
+
+    if DIST.exists():
+        shutil.rmtree(DIST)
+    DIST.mkdir()
+    if DATA.is_dir():
+        shutil.copytree(DATA, DIST / "data")
+
+    # index.json (人間用UI・AIエージェント共通の目録)
+    index = {
+        "title": SITE_TITLE,
+        "generated": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "count": len(tracks),
+        "genres": genres,
+        "tracks": tracks,
+    }
+    (DIST / "index.json").write_text(json.dumps(index, ensure_ascii=False, indent=1), encoding="utf-8")
+
+    # index.html (JS非対応クローラー向けに静的リンク一覧を埋め込む)
+    items = "\n".join(
+        f'<li><a href="{html.escape(t["url"])}">{html.escape(t["title"])}</a> [{html.escape(t["genre"])}]</li>'
+        for t in tracks
+    )
+    page = (ROOT / "index.html").read_text(encoding="utf-8").replace("<!--STATIC_LIST-->", items)
+    (DIST / "index.html").write_text(page, encoding="utf-8")
+
+    # llms.txt (AIエージェント向けの案内)
+    base = SITE_URL + "/" if SITE_URL else ""
+    lines = [
+        f"# {SITE_TITLE}",
+        "",
+        "> BGM音源のアーカイブ。全曲の一覧は index.json (JSON) にまとまっています。",
+        "",
+        f"- 目録: {base}index.json",
+        "- ファイル名の規則: ジャンル_タイトル.拡張子 (例: edm_neon-city.mp3 → ジャンル edm)",
+        f"- 曲数: {len(tracks)} / ジャンル: {', '.join(f'{g}({n})' for g, n in genres.items()) or 'なし'}",
+        "",
+        "## Tracks",
+    ]
+    lines += [f"- [{t['genre']}] {t['title']}: {base}{t['url']}" for t in tracks]
+    (DIST / "llms.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+    # _headers (目録と音源を外部サイト・エージェントからも取得できるように)
+    (DIST / "_headers").write_text(
+        "/index.json\n  Access-Control-Allow-Origin: *\n  Cache-Control: no-cache\n"
+        "/llms.txt\n  Access-Control-Allow-Origin: *\n"
+        "/data/*\n  Access-Control-Allow-Origin: *\n",
+        encoding="utf-8",
+    )
+
+    print(f"{len(tracks)} 曲 / ジャンル {len(genres)} 種 → {DIST}")
+
+
+if __name__ == "__main__":
+    main()
