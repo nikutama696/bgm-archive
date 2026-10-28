@@ -22,7 +22,7 @@ DIST = ROOT / "dist"
 EXTS = {".mp3", ".wav", ".ogg", ".m4a", ".flac", ".aac"}
 PAGES_LIMIT = 25 * 1024 * 1024  # Cloudflare Pages: 1ファイル25MBまで
 SITE_URL = os.environ.get("SITE_URL", "").rstrip("/")
-SITE_TITLE = "BGM Archive"
+SITE_TITLE = "Nikutama BGM Stock"
 
 try:  # 入っていれば再生時間も取得 (pip install mutagen)
     from mutagen import File as MutagenFile
@@ -106,8 +106,9 @@ def main():
     page = (ROOT / "index.html").read_text(encoding="utf-8").replace("<!--STATIC_LIST-->", items)
     (DIST / "index.html").write_text(page, encoding="utf-8")
 
-    # terms.html (利用規約)
-    shutil.copy(ROOT / "terms.html", DIST / "terms.html")
+    # 利用規約・ファビコン
+    for name in ("terms.html", "favicon.svg", "icon.png", "ogp.png"):
+        shutil.copy(ROOT / name, DIST / name)
 
     # llms.txt (AIエージェント向けの案内)
     base = SITE_URL + "/" if SITE_URL else ""
