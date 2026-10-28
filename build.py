@@ -111,6 +111,7 @@ def main():
             "redistribution_or_resale": False,
             "content_id_registration": False,
             "ai_training": False,
+            "agreement_required": True,
         },
         "tracks": tracks,
     }
@@ -149,6 +150,7 @@ def main():
         "- OK: 商用利用 / 加工・編集 / クレジット表記は任意",
         "- NG: 音源ファイル自体の再配布・転売 / YouTube Content ID等への登録 / 生成AI・機械学習モデルの学習への利用 / 違法・公序良俗に反する用途 / 他者の権利を侵害する表現",
         "- AIエージェントによる検索・試聴・ダウンロードは可。ただし学習データとしての利用は不可",
+        "- 音源を利用する場合は、人間・AIエージェントを問わず利用規約への同意が必要です",
         "- Powered by Stability AI",
         "",
         "## Tracks",

@@ -101,6 +101,16 @@ input[type=range]{-webkit-appearance:none;appearance:none;height:4px;border-radi
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#fff;border:0;box-shadow:var(--glow)}
 input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#fff;border:0}
 #vol{width:90px;flex:none}
+dialog{border:1px solid var(--line);border-radius:18px;background:#04181C;color:var(--ink);padding:0;max-width:440px;width:calc(100% - 32px);box-shadow:0 30px 80px rgba(0,0,0,.6),var(--glow)}
+dialog::backdrop{background:rgba(2,9,12,.72);backdrop-filter:blur(4px)}
+.dlgb{padding:24px}.dlgb h2{margin:0 0 8px;font-size:20px}.dlgb p{margin:0 0 10px}.dlgb a{color:var(--acc)}
+.mini{margin:0;padding-left:1.2em;color:var(--mute);font-size:14px}
+.agree{display:flex;gap:10px;align-items:center;margin:18px 0;cursor:pointer}
+.agree input{width:18px;height:18px;accent-color:var(--acc)}
+.acts{display:flex;gap:10px;justify-content:flex-end}
+.acts button{font:inherit;padding:9px 18px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+#go{background:linear-gradient(135deg,var(--key),var(--key2));border-color:rgba(63,232,212,.5);font-weight:700}
+#go:disabled{opacity:.4;cursor:not-allowed}
 noscript ul{padding-left:20px}
 @media(max-width:900px){.row{grid-template-columns:26px 40px 44px minmax(0,1fr) 100px 44px 62px auto}.row .wave{display:none}}
 @media(max-width:760px){.row{grid-template-columns:40px 44px minmax(0,1fr) auto;gap:12px}.row .idx,.row .wave,.row .tag,.row .num{display:none}
@@ -145,6 +155,13 @@ noscript ul{padding-left:20px}
     <input id="vol" type="range" min="0" max="1" step="0.01" value="1" aria-label="音量">
   </div>
 </div>
+<dialog id="dlg" aria-labelledby="dlgT"><div class="dlgb">
+  <h2 id="dlgT">BGMのダウンロード</h2>
+  <p>ダウンロード前に<a href="terms.html" target="_blank" rel="noopener">利用規約</a>をご確認ください。</p>
+  <ul class="mini"><li>商用利用OK・加工自由・クレジット任意</li><li>音源そのものの再配布・転売は禁止</li><li>YouTube Content ID等への登録は禁止</li><li>AI・機械学習モデルの学習への利用は禁止</li></ul>
+  <label class="agree"><input type="checkbox" id="agree"> 利用規約を確認し、同意します。</label>
+  <div class="acts"><button id="cancel" type="button">キャンセル</button><button id="go" type="button" disabled>ダウンロードへ進む</button></div>
+</div></dialog>
 <audio id="audio" preload="metadata"></audio>
 
 <script>
@@ -220,6 +237,7 @@ function render() {
     const dl = document.createElement('a'); dl.className = 'dl'; dl.href = t.url; dl.download = t.file.split('/').pop();
     dl.innerHTML = ico('download') + '保存';
     dl.setAttribute('aria-label', t.title + ' をダウンロード'); dl.title = '利用規約に同意のうえダウンロードしてください';
+    dl.addEventListener('click', e => { if (!agreed()) { e.preventDefault(); askTerms(dl); } });
     li.append(ix, p, th, ti, wave(t), tag, du, nu, dl); ul.appendChild(li);
   });
   mark();
@@ -262,6 +280,17 @@ function prev() {
   play(view[(i <= 0 ? view.length : i) - 1]);
 }
 function toggle(btn, on) { btn.setAttribute('aria-pressed', on); }
+
+// 初回のダウンロード時に利用規約への同意を確認する (同意はこのブラウザにだけ記録。規約の制定日が変わると再確認)
+const TERMS_VER = '2026-11-01'; let okSession = false, pendingDl = null;
+const agreed = () => { if (okSession) return true; try { return localStorage.getItem('bgmTerms') === TERMS_VER; } catch (e) { return false; } };
+function askTerms(a) { pendingDl = a; $('#agree').checked = false; $('#go').disabled = true; $('#dlg').showModal(); }
+$('#agree').onchange = e => { $('#go').disabled = !e.target.checked; };
+$('#cancel').onclick = () => { pendingDl = null; $('#dlg').close(); };
+$('#go').onclick = () => {
+  okSession = true; try { localStorage.setItem('bgmTerms', TERMS_VER); } catch (e) {}
+  $('#dlg').close(); const a = pendingDl; pendingDl = null; if (a) a.click();
+};
 $('#rand').onclick = () => { if (!view.length) return; shuffle = true; toggle($('#shuf'), true); play(pickRandom()); };
 $('#shuf').onclick = () => { shuffle = !shuffle; toggle($('#shuf'), shuffle); };
 $('#rep').onclick = () => { audio.loop = !audio.loop; toggle($('#rep'), audio.loop); };
