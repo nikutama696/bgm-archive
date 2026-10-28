@@ -120,7 +120,7 @@ noscript ul{padding-left:20px}
 <body>
 <div class="wrap">
   <div class="top"><img src="favicon.svg" alt="" width="32" height="32"><h1>Nikutama BGM Stock</h1></div>
-  <p class="notice"><b>商用利用OK・加工自由・クレジット任意。</b>音源ファイル自体の再配布・転売、YouTube Content ID等への登録、AI学習への利用は禁止です。ダウンロード・ご利用の際は<a href="terms.html">利用規約</a>への同意が必要です。</p>
+  <p class="notice"><b>商用利用OK・加工自由・クレジット任意。</b>音源ファイル自体の再配布・転売、YouTube Content ID等への登録、AI学習への利用は禁止です。ダウンロード・ご利用の際は<a href="terms">利用規約</a>への同意が必要です。</p>
   <div class="tools">
     <div class="r1">
       <div class="sw"><span data-ico="search"></span><input id="q" class="search" type="search" placeholder="曲名・ジャンルで検索" aria-label="検索"></div>
@@ -135,7 +135,7 @@ noscript ul{padding-left:20px}
     <ul><!--STATIC_LIST--></ul>
   </noscript>
   <footer>
-    <a href="terms.html">利用規約・ライセンス</a>
+    <a href="terms">利用規約・ライセンス</a>
     <span>運営: nikutama</span>
     <span>Powered by Stability AI</span>
   </footer>
@@ -157,7 +157,7 @@ noscript ul{padding-left:20px}
 </div>
 <dialog id="dlg" aria-labelledby="dlgT"><div class="dlgb">
   <h2 id="dlgT">BGMのダウンロード</h2>
-  <p>ダウンロード前に<a href="terms.html" target="_blank" rel="noopener">利用規約</a>をご確認ください。</p>
+  <p>ダウンロード前に<a href="terms" target="_blank" rel="noopener">利用規約</a>をご確認ください。</p>
   <ul class="mini"><li>商用利用OK・加工自由・クレジット任意</li><li>音源そのものの再配布・転売は禁止</li><li>YouTube Content ID等への登録は禁止</li><li>AI・機械学習モデルの学習への利用は禁止</li></ul>
   <label class="agree"><input type="checkbox" id="agree"> 利用規約を確認し、同意します。</label>
   <div class="acts"><button id="cancel" type="button">キャンセル</button><button id="go" type="button" disabled>ダウンロードへ進む</button></div>
@@ -282,7 +282,7 @@ function prev() {
 function toggle(btn, on) { btn.setAttribute('aria-pressed', on); }
 
 // 初回のダウンロード時に利用規約への同意を確認する (同意はこのブラウザにだけ記録。規約の制定日が変わると再確認)
-const TERMS_VER = '2026-11-01'; let okSession = false, pendingDl = null;
+const TERMS_VER = '2026-10-28'; let okSession = false, pendingDl = null;
 const agreed = () => { if (okSession) return true; try { return localStorage.getItem('bgmTerms') === TERMS_VER; } catch (e) { return false; } };
 function askTerms(a) { pendingDl = a; $('#agree').checked = false; $('#go').disabled = true; $('#dlg').showModal(); }
 $('#agree').onchange = e => { $('#go').disabled = !e.target.checked; };

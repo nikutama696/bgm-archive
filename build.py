@@ -103,7 +103,7 @@ def main():
         "count": len(tracks),
         "genres": genres,
         "terms": {
-            "url": "terms.html",
+            "url": "terms",
             "license": "Stability AI Community License",
             "commercial_use": True,
             "modification": True,
@@ -145,7 +145,7 @@ def main():
         f"- 曲数: {len(tracks)} / ジャンル: {', '.join(f'{g}({n})' for g, n in genres.items()) or 'なし'}",
         "",
         "## 利用規約 (必ず確認してください)",
-        f"- 規約全文: {base}terms.html",
+        f"- 規約全文: {base}terms",
         "- 音源はStability AI Community Licenseに基づき生成・編集されたAI音源",
         "- OK: 商用利用 / 加工・編集 / クレジット表記は任意",
         "- NG: 音源ファイル自体の再配布・転売 / YouTube Content ID等への登録 / 生成AI・機械学習モデルの学習への利用 / 違法・公序良俗に反する用途 / 他者の権利を侵害する表現",
