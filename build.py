@@ -108,7 +108,11 @@ def main():
 
     # 利用規約・ファビコン
     for name in ("terms.html", "favicon.svg", "icon.png", "ogp.png"):
-        shutil.copy(ROOT / name, DIST / name)
+        src = ROOT / name
+        if src.exists():
+            shutil.copy(src, DIST / name)
+        else:  # 1ファイルの置き忘れでデプロイ全体が失敗しないようにする
+            print(f"[警告] {name} がリポジトリにありません (スキップ)")
 
     # llms.txt (AIエージェント向けの案内)
     base = SITE_URL + "/" if SITE_URL else ""
