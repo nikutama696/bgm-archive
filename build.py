@@ -12,6 +12,9 @@ import html
 import json
 import os
 import shutil
+import subprocess
+import sys
+import tempfile
 import urllib.parse
 from datetime import datetime, timezone
 from pathlib import Path
@@ -24,10 +27,25 @@ PAGES_LIMIT = 25 * 1024 * 1024  # Cloudflare Pages: 1ファイル25MBまで
 SITE_URL = os.environ.get("SITE_URL", "").rstrip("/")
 SITE_TITLE = "Nikutama BGM Stock"
 
-try:  # 入っていれば再生時間も取得 (pip install mutagen)
-    from mutagen import File as MutagenFile
-except ImportError:
-    MutagenFile = None
+def _load_mutagen():
+    """再生時間の取得に使う。無ければ自動でインストールする (Cloudflareのビルド環境用)。"""
+    try:
+        from mutagen import File
+        return File
+    except ImportError:
+        pass
+    try:  # システムのPythonを汚さないよう、一時フォルダに入れる
+        target = tempfile.mkdtemp()
+        subprocess.run([sys.executable, "-m", "pip", "install", "--quiet", "--target", target, "mutagen"], check=True)
+        sys.path.insert(0, target)
+        from mutagen import File
+        return File
+    except Exception:
+        print("[警告] mutagen を用意できなかったため、再生時間は表示されません")
+        return None
+
+
+MutagenFile = _load_mutagen()
 
 
 def get_duration(path):

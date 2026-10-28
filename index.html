@@ -58,7 +58,7 @@ h1{margin:0;font:800 clamp(20px,3.6vw,33px)/1 Sora,sans-serif;letter-spacing:-.0
 .chip[aria-pressed=true]{color:#fff;border-color:rgba(63,232,212,.6);background:linear-gradient(135deg,var(--key),var(--key2));box-shadow:var(--glow)}
 .meta{margin:18px 0 10px;color:var(--mute);font-size:14px}
 ul.list{list-style:none;margin:0;padding:0;border:1px solid var(--line);border-radius:18px;background:var(--panel);overflow:hidden;backdrop-filter:blur(6px);box-shadow:0 0 40px rgba(18,165,156,.08)}
-.row{display:grid;grid-template-columns:26px 40px 44px minmax(0,1fr) 110px auto auto auto;gap:14px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line);transition:background .15s}
+.row{display:grid;grid-template-columns:26px 40px 44px minmax(0,1fr) 110px 100px 44px 62px auto;gap:14px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line);transition:background .15s}
 .row:last-child{border-bottom:0}
 .row:hover{background:rgba(63,232,212,.06)}
 .row.on{background:rgba(18,165,156,.14);box-shadow:inset 0 0 0 1px var(--acc),0 0 22px rgba(63,232,212,.2)}
@@ -75,7 +75,9 @@ ul.list{list-style:none;margin:0;padding:0;border:1px solid var(--line);border-r
 .wave i{flex:1;background:rgba(134,169,166,.4);border-radius:1px}
 .wave i.f{background:var(--acc)}
 .tag{font-size:13px;padding:1px 12px;border:1px solid rgba(63,232,212,.35);border-radius:999px;background:rgba(63,232,212,.08);color:var(--acc);cursor:pointer}
-.num{color:var(--mute);font-size:13px;text-align:right;min-width:5.5em;font-variant-numeric:tabular-nums}
+.num{color:var(--mute);font-size:13px;text-align:right;font-variant-numeric:tabular-nums}
+.dur{color:var(--ink)}
+.tag{justify-self:start}
 .dl{display:inline-flex;align-items:center;gap:6px;font-size:13px;text-decoration:none;border:1px solid var(--line);padding:5px 14px;border-radius:999px;color:var(--ink)}
 .dl svg{width:15px;height:15px}
 .dl:hover{border-color:var(--acc);color:var(--acc);box-shadow:var(--glow)}
@@ -100,6 +102,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#fff;border:0}
 #vol{width:90px;flex:none}
 noscript ul{padding-left:20px}
+@media(max-width:900px){.row{grid-template-columns:26px 40px 44px minmax(0,1fr) 100px 44px 62px auto}.row .wave{display:none}}
 @media(max-width:760px){.row{grid-template-columns:40px 44px minmax(0,1fr) auto;gap:12px}.row .idx,.row .wave,.row .tag,.row .num{display:none}
 .in{grid-template-columns:1fr auto;gap:10px 14px}.seek{grid-column:1/-1;order:3}.in>:last-child{display:none}}
 </style>
@@ -212,12 +215,12 @@ function render() {
     const th = document.createElement('span'); th.className = 'th'; th.style.background = thumb(t);
     const ti = document.createElement('span'); ti.className = 'title'; ti.textContent = t.title;
     const tag = document.createElement('button'); tag.className = 'tag'; tag.type = 'button'; tag.textContent = t.genre; tag.onclick = () => setGenre(t.genre);
-    const nu = document.createElement('span'); nu.className = 'num';
-    nu.textContent = [t.duration != null ? mmss(t.duration) : '', mb(t.size)].filter(Boolean).join(' / ');
+    const du = document.createElement('span'); du.className = 'num dur'; du.textContent = t.duration != null ? mmss(t.duration) : '';
+    const nu = document.createElement('span'); nu.className = 'num'; nu.textContent = mb(t.size);
     const dl = document.createElement('a'); dl.className = 'dl'; dl.href = t.url; dl.download = t.file.split('/').pop();
     dl.innerHTML = ico('download') + '保存';
     dl.setAttribute('aria-label', t.title + ' をダウンロード'); dl.title = '利用規約に同意のうえダウンロードしてください';
-    li.append(ix, p, th, ti, wave(t), tag, nu, dl); ul.appendChild(li);
+    li.append(ix, p, th, ti, wave(t), tag, du, nu, dl); ul.appendChild(li);
   });
   mark();
 }
