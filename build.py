@@ -25,6 +25,7 @@ DIST = ROOT / "dist"
 EXTS = {".mp3", ".wav", ".ogg", ".m4a", ".flac", ".aac"}
 PAGES_LIMIT = 25 * 1024 * 1024  # Cloudflare Pages: 1ファイル25MBまで
 NEW_WINDOW = timedelta(days=3)
+TRACK_METADATA = ROOT / "track-metadata.json"
 SITE_URL = os.environ.get("SITE_URL", "").rstrip("/")
 SITE_TITLE = "Nikutama BGM Stock"
 
@@ -49,6 +50,14 @@ def _load_mutagen():
 MutagenFile = _load_mutagen()
 
 
+def load_track_metadata():
+    try:
+        value = json.loads(TRACK_METADATA.read_text(encoding="utf-8"))
+        return value if isinstance(value, dict) else {}
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
 def get_duration(path):
     if MutagenFile is None:
         return None
@@ -59,8 +68,10 @@ def get_duration(path):
         return None
 
 
-def get_added_at(path, rel):
+def get_added_at(path, rel, metadata):
     """Gitの追加日時を使い、履歴がない既存ファイルは新着扱いにしない。"""
+    if rel in metadata:
+        return metadata[rel], "manifest"
     try:
         result = subprocess.run(
             ["git", "log", "--follow", "--diff-filter=A", "--format=%cI", "--", f"data/{rel}"],
@@ -109,6 +120,7 @@ def is_new(added):
 
 def scan():
     tracks = []
+    metadata = load_track_metadata()
     if not DATA.is_dir():
         return tracks
     for p in sorted(DATA.rglob("*")):
@@ -121,7 +133,7 @@ def scan():
         size = p.stat().st_size
         if size > PAGES_LIMIT:
             print(f"[警告] 25MB超: {rel} ({size / 1048576:.1f}MB) → Cloudflare Pagesにはアップできません")
-        added, added_source = get_added_at(p, rel)
+        added, added_source = get_added_at(p, rel, metadata)
         tracks.append({
             "file": rel,
             "title": rest.replace("_", " "),
