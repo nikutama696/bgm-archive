@@ -75,6 +75,7 @@ ul.list{list-style:none;margin:0;padding:0;border:1px solid var(--line);border-r
 .wave i{flex:1;background:rgba(134,169,166,.4);border-radius:1px}
 .wave i.f{background:var(--acc)}
 .tag{font-size:13px;padding:1px 12px;border:1px solid rgba(63,232,212,.35);border-radius:999px;background:rgba(63,232,212,.08);color:var(--acc);cursor:pointer}
+.new-badge{display:inline-block;margin-left:8px;padding:1px 7px;border:1px solid #FFB86B;border-radius:999px;background:rgba(255,184,107,.14);color:#FFD39D;font:800 11px/1.45 Sora,sans-serif;letter-spacing:.02em;vertical-align:middle;white-space:nowrap}
 .num{color:var(--mute);font-size:13px;text-align:right;font-variant-numeric:tabular-nums}
 .dur{color:var(--ink)}
 .tag{justify-self:start}
@@ -188,6 +189,7 @@ function wave(t) {
 let data, genre = decodeURIComponent(location.hash.slice(1)) || 'all', q = '', view = [], cur = null, shuffle = false, hist = [], dragging = false;
 const mb = n => (n / 1048576).toFixed(1) + ' MB';
 const mmss = s => (s == null || !isFinite(s)) ? '0:00' : Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+const isNew = t => { const added = Date.parse(t.added); return Number.isFinite(added) && Date.now() >= added && Date.now() - added < 3 * 24 * 60 * 60 * 1000; };
 
 fetch('index.json').then(r => r.json()).then(d => { data = d; init(); })
   .catch(() => { $('#meta').textContent = 'index.json を読み込めませんでした。build.py を実行し、serve.py 経由で開いてください。'; });
@@ -231,6 +233,7 @@ function render() {
     p.onclick = () => play(t);
     const th = document.createElement('span'); th.className = 'th'; th.style.background = thumb(t);
     const ti = document.createElement('span'); ti.className = 'title'; ti.textContent = t.title;
+    if (isNew(t)) { const badge = document.createElement('span'); badge.className = 'new-badge'; badge.textContent = 'new!'; badge.setAttribute('aria-label', '新着'); ti.appendChild(badge); }
     const tag = document.createElement('button'); tag.className = 'tag'; tag.type = 'button'; tag.textContent = t.genre; tag.onclick = () => setGenre(t.genre);
     const du = document.createElement('span'); du.className = 'num dur'; du.textContent = t.duration != null ? mmss(t.duration) : '';
     const nu = document.createElement('span'); nu.className = 'num'; nu.textContent = mb(t.size);

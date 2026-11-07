@@ -16,7 +16,7 @@ import subprocess
 import sys
 import tempfile
 import urllib.parse
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -24,6 +24,7 @@ DATA = ROOT / "data"
 DIST = ROOT / "dist"
 EXTS = {".mp3", ".wav", ".ogg", ".m4a", ".flac", ".aac"}
 PAGES_LIMIT = 25 * 1024 * 1024  # Cloudflare Pages: 1ファイル25MBまで
+NEW_WINDOW = timedelta(days=3)
 SITE_URL = os.environ.get("SITE_URL", "").rstrip("/")
 SITE_TITLE = "Nikutama BGM Stock"
 
@@ -58,6 +59,31 @@ def get_duration(path):
         return None
 
 
+def get_added_at(path, rel):
+    """Gitの追加日時を優先し、履歴がないファイルはmtimeを使う。"""
+    try:
+        result = subprocess.run(
+            ["git", "log", "--follow", "--diff-filter=A", "--format=%cI", "--", f"data/{rel}"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            return result.stdout.strip().splitlines()[0]
+    except (OSError, subprocess.SubprocessError):
+        pass
+    return datetime.fromtimestamp(path.stat().st_mtime, timezone.utc).isoformat(timespec="seconds")
+
+
+def is_new(added):
+    try:
+        age = datetime.now(timezone.utc) - datetime.fromisoformat(added)
+        return timedelta(0) <= age < NEW_WINDOW
+    except (TypeError, ValueError):
+        return False
+
+
 def scan():
     tracks = []
     if not DATA.is_dir():
@@ -78,6 +104,7 @@ def scan():
             "genre": genre.lower(),
             "size": size,
             "duration": get_duration(p),
+            "added": get_added_at(p, rel),
             "url": "data/" + urllib.parse.quote(rel),
         })
     return tracks
@@ -118,8 +145,15 @@ def main():
     (DIST / "index.json").write_text(json.dumps(index, ensure_ascii=False, indent=1), encoding="utf-8")
 
     # index.html (JS非対応クローラー向けに静的リンク一覧を埋め込む)
+    def static_item(t):
+        badge = ' <span class="new-badge">new!</span>' if is_new(t["added"]) else ""
+        return (
+            f'<li><a href="{html.escape(t["url"])}">{html.escape(t["title"])}</a>'
+            f'{badge} [{html.escape(t["genre"])}]</li>'
+        )
+
     items = "\n".join(
-        f'<li><a href="{html.escape(t["url"])}">{html.escape(t["title"])}</a> [{html.escape(t["genre"])}]</li>'
+        static_item(t)
         for t in tracks
     )
     page = (ROOT / "index.html").read_text(encoding="utf-8").replace("<!--STATIC_LIST-->", items)
