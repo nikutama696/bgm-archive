@@ -189,7 +189,7 @@ function wave(t) {
 let data, genre = decodeURIComponent(location.hash.slice(1)) || 'all', q = '', view = [], cur = null, shuffle = false, hist = [], dragging = false;
 const mb = n => (n / 1048576).toFixed(1) + ' MB';
 const mmss = s => (s == null || !isFinite(s)) ? '0:00' : Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
-const isNew = t => { const added = Date.parse(t.added); return Number.isFinite(added) && Date.now() >= added && Date.now() - added < 3 * 24 * 60 * 60 * 1000; };
+const isNew = t => { const added = Date.parse(t.added); return !!t.added_source && Number.isFinite(added) && Date.now() >= added && Date.now() - added < 3 * 24 * 60 * 60 * 1000; };
 
 fetch('index.json').then(r => r.json()).then(d => { data = d; init(); })
   .catch(() => { $('#meta').textContent = 'index.json を読み込めませんでした。build.py を実行し、serve.py 経由で開いてください。'; });

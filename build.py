@@ -70,7 +70,7 @@ def get_added_at(path, rel):
             check=False,
         )
         if result.returncode == 0 and result.stdout.strip():
-            return result.stdout.strip().splitlines()[0]
+            return result.stdout.strip().splitlines()[0], "git"
     except (OSError, subprocess.SubprocessError):
         pass
     # CIの浅いcloneではGit履歴が取れないことがある。追跡済みファイルの
@@ -84,7 +84,7 @@ def get_added_at(path, rel):
             check=False,
         )
         if repository.returncode != 0:
-            return None
+            return None, None
         tracked = subprocess.run(
             ["git", "ls-files", "--error-unmatch", "--", f"data/{rel}"],
             cwd=ROOT,
@@ -93,10 +93,10 @@ def get_added_at(path, rel):
             check=False,
         )
         if tracked.returncode != 0:
-            return datetime.fromtimestamp(path.stat().st_mtime, timezone.utc).isoformat(timespec="seconds")
+            return datetime.fromtimestamp(path.stat().st_mtime, timezone.utc).isoformat(timespec="seconds"), "mtime"
     except (OSError, subprocess.SubprocessError):
-        return None
-    return None
+        return None, None
+    return None, None
 
 
 def is_new(added):
@@ -121,13 +121,15 @@ def scan():
         size = p.stat().st_size
         if size > PAGES_LIMIT:
             print(f"[警告] 25MB超: {rel} ({size / 1048576:.1f}MB) → Cloudflare Pagesにはアップできません")
+        added, added_source = get_added_at(p, rel)
         tracks.append({
             "file": rel,
             "title": rest.replace("_", " "),
             "genre": genre.lower(),
             "size": size,
             "duration": get_duration(p),
-            "added": get_added_at(p, rel),
+            "added": added,
+            "added_source": added_source,
             "url": "data/" + urllib.parse.quote(rel),
         })
     return tracks
@@ -169,7 +171,7 @@ def main():
 
     # index.html (JS非対応クローラー向けに静的リンク一覧を埋め込む)
     def static_item(t):
-        badge = ' <span class="new-badge">new!</span>' if is_new(t["added"]) else ""
+        badge = ' <span class="new-badge">new!</span>' if t.get("added_source") and is_new(t["added"]) else ""
         return (
             f'<li><a href="{html.escape(t["url"])}">{html.escape(t["title"])}</a>'
             f'{badge} [{html.escape(t["genre"])}]</li>'
