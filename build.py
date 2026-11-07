@@ -60,7 +60,7 @@ def get_duration(path):
 
 
 def get_added_at(path, rel):
-    """Gitの追加日時を優先し、履歴がないファイルはmtimeを使う。"""
+    """Gitの追加日時を使い、履歴がない既存ファイルは新着扱いにしない。"""
     try:
         result = subprocess.run(
             ["git", "log", "--follow", "--diff-filter=A", "--format=%cI", "--", f"data/{rel}"],
@@ -73,7 +73,21 @@ def get_added_at(path, rel):
             return result.stdout.strip().splitlines()[0]
     except (OSError, subprocess.SubprocessError):
         pass
-    return datetime.fromtimestamp(path.stat().st_mtime, timezone.utc).isoformat(timespec="seconds")
+    # CIの浅いcloneではGit履歴が取れないことがある。追跡済みファイルの
+    # mtimeはclone時刻になり得るため、既存曲を新着にしないよう日時を持たせない。
+    try:
+        tracked = subprocess.run(
+            ["git", "ls-files", "--error-unmatch", "--", f"data/{rel}"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if tracked.returncode != 0:
+            return datetime.fromtimestamp(path.stat().st_mtime, timezone.utc).isoformat(timespec="seconds")
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return None
 
 
 def is_new(added):
