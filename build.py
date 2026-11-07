@@ -76,6 +76,15 @@ def get_added_at(path, rel):
     # CIの浅いcloneではGit履歴が取れないことがある。追跡済みファイルの
     # mtimeはclone時刻になり得るため、既存曲を新着にしないよう日時を持たせない。
     try:
+        repository = subprocess.run(
+            ["git", "rev-parse", "--is-inside-work-tree"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if repository.returncode != 0:
+            return None
         tracked = subprocess.run(
             ["git", "ls-files", "--error-unmatch", "--", f"data/{rel}"],
             cwd=ROOT,
